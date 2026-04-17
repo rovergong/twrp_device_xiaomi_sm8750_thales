@@ -57,42 +57,6 @@ case "$variant" in
     set_vibrator_props "170" "20" "/sys/class/qcom-haptics" "agm"
     ;;
 
-"pudding")
-    model="$base_name 17"
-    resetprop ro.twrp.device_version "Xiaomi_17"
-    resetprop ro.twrp.y_offset "116"
-    resetprop ro.twrp.h_offset "-116"
-    resetprop ro.odm.mm.vibrator.he1.0 "mihaptic"
-    set_vibrator_props "170" "20" "/sys/class/qcom-haptics" "agm"
-    ;;
-
-"pandora")
-    model="$base_name 17 Pro"
-    resetprop ro.twrp.device_version "Xiaomi_17_Pro"
-    resetprop ro.twrp.y_offset "116"
-    resetprop ro.twrp.h_offset "-116"
-    resetprop ro.odm.mm.vibrator.he1.0 "mihaptic"
-    set_vibrator_props "170" "20" "/sys/class/qcom-haptics" "agm"
-    ;;
-
-"popsicle")
-    model="$base_name 17 Pro Max"
-    resetprop ro.twrp.device_version "Xiaomi_17_Pro_Max"
-    resetprop ro.twrp.y_offset "116"
-    resetprop ro.twrp.h_offset "-116"
-    resetprop ro.odm.mm.vibrator.he1.0 "mihaptic"
-    set_vibrator_props "170" "20" "/sys/class/qcom-haptics" "agm"
-    ;;
-
-"nezha")
-    model="$base_name 17 Ultra"
-    resetprop ro.twrp.device_version "Xiaomi_17_Ultra"
-    resetprop ro.twrp.y_offset "116"
-    resetprop ro.twrp.h_offset "-116"
-    resetprop ro.odm.mm.vibrator.he1.0 "mihaptic"
-    set_vibrator_props "170" "20" "/sys/class/qcom-haptics" "agm"
-    ;;
-
 *)
     #-----------------------------------------
     # Default configuration
