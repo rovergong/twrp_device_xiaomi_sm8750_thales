@@ -29,7 +29,6 @@ import /init.recovery.wifi.rc
 
 on init
     start vendor.boot-qti
-    setprop prepdecrypt.setpatch true
 
 on early-fs
     write /proc/sys/walt/sched_lib_name "recovery,magiskboot,Updater,updater,update_engine_sideload"
@@ -45,8 +44,9 @@ on fs
     chown system system /dev/ion
     mkdir /mnt/vendor 0775 shell system
     mkdir /mnt/vendor/persist 0775 shell system
-    mkdir /tmp/persist 0775 shell system
-    mount none /tmp/persist /mnt/vendor/persist bind rec
+    wait /dev/block/bootdevice/by-name/persist
+    mount ext4 /dev/block/bootdevice/by-name/persist /persist noatime nosuid nodev barrier=1
+    mount none /persist /mnt/vendor/persist bind
     install_keyring
 
 on post-fs
@@ -66,15 +66,9 @@ on property:twrp.modules.loaded=true
     start vendor.health-default
     umount /firmware
 
-on property:ro.crypto.state=encrypted && property:ro.boot.dynamic_partitions=true
-    start odm.prepdecrypt
-
 on property:twrp.variant.files_copied=1
     start odm.vibratorfeature-service
     start odm.touch_report
-    start odm.weaver-service
-    start odm.keymint-strongbox
-    start odm.se_omapi
 
 on property:servicemanager.ready=true
     setprop sys.boot_completed 1
