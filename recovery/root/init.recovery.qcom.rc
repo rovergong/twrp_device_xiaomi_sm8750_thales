@@ -73,11 +73,9 @@ on property:twrp.modules.loaded=true
     # KeyMint stays down until this has pointed the version properties at the
     # installed system, so start it as early as the mapper nodes allow.
     start odm.prepdecrypt
-    # Keep the modem image mounted: qca_cld3_peach_v2 loads WLAN firmware
-    # from /vendor/firmware_mnt/image after the driver is inserted.
-    mkdir /vendor/firmware_mnt 0755 root shell
-    mount vfat /dev/block/bootdevice/by-name/modem${ro.boot.slot_suffix} /vendor/firmware_mnt ro,shortname=lower,uid=1000,gid=1000,dmask=227,fmask=337
-    mount none /vendor/firmware_mnt /firmware bind
+    # Mount firmware
+    mkdir /firmware
+    mount vfat /dev/block/bootdevice/by-name/modem${ro.boot.slot_suffix} /firmware ro
     # Load ADSP firmware for PMIC
     wait /sys/kernel/boot_adsp/boot
     write /sys/kernel/boot_adsp/boot 1
@@ -86,4 +84,4 @@ on property:twrp.modules.loaded=true
     write /sys/kernel/boot_adsp/ssr 1
     wait /sys/class/power_supply/battery
     start vendor.health-default
-    setprop twrp.firmware.mounted true
+    umount /firmware
