@@ -1,4 +1,4 @@
-name: TWRP 16 Builder
+name: lvgl Builder
 
 on:
   workflow_dispatch:
