@@ -1,41 +1,3 @@
-name: TWRP 16 Builder
-
-on:
-  workflow_dispatch:
-    inputs:
-      TWRP_MANIFEST_URL:
-        description: "TWRP manifest url"
-        required: true
-        default: "https://github.com/TWRP-Test/platform_manifest_twrp_aosp"
-      TWRP_MANIFEST_BRANCH:
-        description: "TWRP branch"
-        required: true
-        default: "twrp-16.0"
-      DEVICE_TREE_URL:
-        description: "Device tree url"
-        required: true
-        default: "https://github.com/rovergong/twrp_device_xiaomi_sm8750_thales"
-      DEVICE_TREE_BRANCH:
-        description: "Device tree branch"
-        required: true
-        default: "twrp-16.0"
-      DEVICE_PATH:
-        description: "Device path device/"
-        required: true
-        default: "xiaomi/sm8750_thales"
-      DEVICE_NAME:
-        description: "Device name"
-        required: true
-        default: "sm8750_thales"
-      LUNCH_TARGET:
-        description: "lunch twrp_ (default same as device name)"
-        required: false
-        default: ""
-      BUILD_PARTITION:
-        description: "Build partition"
-        required: true
-        default: "recovery"
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -58,7 +20,7 @@ jobs:
           echo Device tree branch: ${{ github.event.inputs.DEVICE_TREE_BRANCH }}
           echo Device path: ${{ github.event.inputs.DEVICE_PATH }}
           echo Device name: ${{ github.event.inputs.DEVICE_NAME }}
-          echo Lunch target: ${{ env.LUNCH_TARGET }}
+          echo Lunch target: ${{ github.event.inputs.LUNCH_TARGET }}
           echo Build target: ${{ github.event.inputs.BUILD_PARTITION }}.img
           echo Build date: `date`
           echo
@@ -67,34 +29,48 @@ jobs:
         echo BUILD_DATE=`date +%F` >> "$GITHUB_ENV"
         echo "REPO_NAME=$(basename ${{ github.event.inputs.TWRP_MANIFEST_URL }})" >> "$GITHUB_ENV"
 
+    # 【修正顺序：先扩容，再清理】
     - name: Maximize build space
       uses: easimon/maximize-build-space@master
       with:
         root-reserve-mb: 1024
         swap-size-mb: 2048
         remove-dotnet: 'true'
-        remove-android: 'false'   # 关键！不要删除AOSP编译依赖
+        remove-android: 'false'  # 关键！不要删除AOSP编译组件
         remove-haskell: 'true'
 
-    - name: Cleanup temp files
+    - name: Cleanup
       uses: rokibhasansagar/slimhub_actions@main
 
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@v1.2
       with:
         create-symlink: true
-        max-size: 5G
+
+    - name: Setup zram (optional, best‑effort)
+      run: |
+        set +e
+        sudo apt install zram-tools -y
+        sudo modprobe zram
+        sudo sed -i 's/^#PERCENT=50/PERCENT=90/' /etc/default/zramswap
+        sudo sed -i 's/^#PRIORITY=100/PRIORITY=1000/' /etc/default/zramswap
+        sudo systemctl try‑restart zramswap
+        zramctl
+        set -e
+      # set +e：zram安装失败不终止整个工作流
 
     - name: Setup environment
       run: |
         export DEBIAN_FRONTEND=noninteractive
+        # 清理apt缓存，解决磁盘满exit 100
         sudo apt clean
         sudo apt autoremove -y
-        # 不做完整apt upgrade避免内核大包占满缓存；只更新软件源索引
         sudo apt update
-        sudo apt install repo git python3-pip openssl -y
-        git config --global user.name ${{ shturl.cc/Dy }}
-        git config --global user.email ${{ shturl.cc/Dy }}@users.noreply.github.com
+        # 方案A【推荐CI】：不执行全量apt upgrade，避免下载大量内核包占磁盘
+        sudo apt install repo git python3 -y
+        git config --global user.name ${{ shturl.cc/Cl }}
+        git config --global user.email ${{ shturl.cc/Cl }}@users.noreply.github.com
+ 
 
     - name: Sync source
       run: |
